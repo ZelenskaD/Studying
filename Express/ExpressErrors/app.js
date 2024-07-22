@@ -5,6 +5,7 @@ const app = express();// like app= FLASK(_name_)
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
+
 const USERS =[
     {username: "StacysMom", city:"Reno"},
     {username: "Rosalia", city: "R"},
