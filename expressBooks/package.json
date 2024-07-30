@@ -1,0 +1,26 @@
+{
+  "name": "expressbooks",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZelenskaD/Studying.git"
+  },
+  "private": true,
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2",
+    "jsonschema": "^1.4.1"
+  },
+  "bugs": {
+    "url": "https://github.com/ZelenskaD/Studying/issues"
+  },
+  "homepage": "https://github.com/ZelenskaD/Studying#readme",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
