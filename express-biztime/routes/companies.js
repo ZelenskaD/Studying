@@ -3,18 +3,33 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db")
 const ExpressError = require("../expressError");
+const slugify = require("slugify");
 
 
 //Returns list of companies
-router.get('/', async(req, res, next) => {
-    try{
-        const results = await db.query('SELECT * FROM companies');
-        return res.json({companies: results.rows})
-    } catch(e){
+router.get('/', async (req, res, next) => {
+    try {
+        const results = await db.query(`
+            SELECT 
+                c.code AS company_code,
+                c.name AS company_name,
+                c.description AS company_description,
+                ARRAY_AGG(i.industry) AS industries
+            FROM 
+                companies AS c
+            LEFT JOIN 
+                company_industries AS ci ON c.code = ci.company_code
+            LEFT JOIN 
+                industries AS i ON ci.industry_id = i.id
+            GROUP BY 
+                c.code, c.name, c.description
+        `);
+        return res.json({ companies: results.rows });
+    } catch (e) {
         return next(e);
     }
-
 });
+
 
 
 //Return obj of company
@@ -37,7 +52,8 @@ router.get('/:code', async (req, res, next) => {
 //Adds a company
 router.post('/', async(req, res, next) => {
     try{
-        const {code, name,description} = req.body;
+        const {name,description} = req.body;
+        const code = slugify(name, {lower: true});
         const results = await db.query("INSERT INTO companies(code, name, description) VALUES($1, $2, $3) RETURNING code, name, description", [code, name, description])
         return res.status(201).json({company: results.rows[0]})//deleted extra braces - getting as a json obj
     }catch(e){

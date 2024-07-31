@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require("../db")
 const ExpressError = require("../expressError");
 
+
 //Returns list of invoices
 router.get('/', async(req, res, next) => {
     try{
@@ -77,15 +78,31 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { amt } = req.body;
+        const { amt , paid} = req.body;
 
-        const results = await db.query(
-            'UPDATE invoices SET amt=$1  WHERE id=$2 RETURNING id, comp_code, amt, paid, add_date, paid_date',
-            [amt, id]
+        const currentResult = await ddb.query('SELECT paid FROM invoices WHERE id = $1',[id]);
+        if(currentResult.rows.length===0){
+             throw new ExpressError(`Can't found invoice with id of ${id}`, 404);
+        }
+        const currentPaidStatus = currentResult.rows[0].paid;
+        let paidDate;
+        if(paid && !currentPaidStatus){
+            //If paying unpaid invoice, set paid_date to today
+            paidDate = new Date();
+        }else if(!paid && currentPaidStatus){
+            //If un-paying, set paid_date to null
+            paidDate = null;
+        } else{
+            const currentInvoiceResult = await db.query('SELECT paid_date FROM invoices WHERE id=$1',[id]);
+            paidDate = currentInvoiceResult.rows[0].paid_date;
+        }
+
+       const results = await db.query(
+            'UPDATE invoices SET amt=$1, paid=$2, paid_date=$3 WHERE id=$4 RETURNING id, comp_code, amt, paid, add_date, paid_date',
+            [amt, paid, paidDate, id]
         );
-
-        if (results.rows.length === 0) {
-            throw new ExpressError(`Can't found invoice with id of ${id}`, 404);
+         if (results.rows.length === 0) {
+            throw new ExpressError(`Can't find invoice with id of ${id}`, 404);
         }
 
         return res.json({ invoice: results.rows[0] });
